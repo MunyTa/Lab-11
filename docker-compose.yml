@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   go-service:
     build: ./services/go-service
     container_name: go-app
     ports:
-      - "${GO_PORT:-8080}:8080"
+      - "8080:8080"
     environment:
       - PORT=8080
-      - DEBUG=${DEBUG:-false}
+      - DEBUG=false
     healthcheck:
       test: ["CMD", "/server", "healthcheck"]
       interval: 30s
@@ -16,17 +14,15 @@ services:
       retries: 3
       start_period: 5s
     restart: unless-stopped
-    networks:
-      - app-network
 
   python-service:
     build: ./services/python-service
     container_name: python-app
     ports:
-      - "${PYTHON_PORT:-8000}:8000"
+      - "8000:8000"
     environment:
       - PORT=8000
-      - DEBUG=${DEBUG:-false}
+      - DEBUG=false
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request, os; urllib.request.urlopen(f'http://localhost:{os.environ.get(\"PORT\", 8000)}/health').getcode() == 200 or exit(1)"]
       interval: 30s
@@ -34,9 +30,32 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
-    networks:
-      - app-network
 
-networks:
-  app-network:
-    driver: bridge
+  rust-service:
+    build: ./services/rust-service
+    container_name: rust-app
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+      - DEBUG=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=60
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LOG_LEVEL=info
+      - DOCKER_API_VERSION=1.40
+    restart: unless-stopped
+    command: --interval 60 --cleanup
