@@ -10,17 +10,13 @@ import (
 )
 
 func TestHealthEndpoint(t *testing.T) {
-	// Подготовка
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 
-	// Создаем роутер (еще не реализован, тест должен упасть)
 	router := setupRouter()
 
-	// Действие
 	router.ServeHTTP(w, req)
 
-	// Проверки
 	res := w.Result()
 	defer res.Body.Close()
 
@@ -39,18 +35,14 @@ func TestHealthEndpoint(t *testing.T) {
 }
 
 func TestPortEnvVar(t *testing.T) {
-	// Устанавливаем тестовый порт
 	testPort := "9090"
 	os.Setenv("PORT", testPort)
 	defer os.Unsetenv("PORT")
 
-	// Запускаем сервер в отдельной горутине
 	go main()
 
-	// Даем время серверу запуститься
 	time.Sleep(100 * time.Millisecond)
 
-	// Проверяем, что сервер слушает на тестовом порту
 	resp, err := http.Get("http://localhost:" + testPort + "/health")
 	if err != nil {
 		t.Fatalf("Server not listening on port %s: %v", testPort, err)
@@ -63,16 +55,12 @@ func TestPortEnvVar(t *testing.T) {
 }
 
 func TestDefaultPort(t *testing.T) {
-	// Удаляем PORT из окружения
 	os.Unsetenv("PORT")
 
-	// Запускаем сервер в отдельной горутине
 	go main()
 
-	// Даем время серверу запуститься
 	time.Sleep(100 * time.Millisecond)
 
-	// Проверяем дефолтный порт 8080
 	resp, err := http.Get("http://localhost:8080/health")
 	if err != nil {
 		t.Fatalf("Server not listening on default port 8080: %v", err)
@@ -85,23 +73,16 @@ func TestDefaultPort(t *testing.T) {
 }
 
 func TestHealthcheckCommand(t *testing.T) {
-	// Тест для бинарного healthcheck (будет использоваться в Docker)
 	os.Setenv("PORT", "8080")
 	defer os.Unsetenv("PORT")
 
-	// Запускаем сервер
 	go main()
 	time.Sleep(100 * time.Millisecond)
 
-	// Имитируем вызов healthcheck команды
 	oldArgs := os.Args
 	defer func() { os.Args = oldArgs }()
 	os.Args = []string{"server", "healthcheck"}
 
-	// Эта функция должна завершиться с кодом 0 если сервер здоров
-	// В тесте мы просто проверим, что healthcheck работает без паники
-	// Для реального теста нужно перехватить os.Exit, но это сложно
-	// Поэтому проверяем через HTTP напрямую
 	resp, err := http.Get("http://localhost:8080/health")
 	if err != nil {
 		t.Fatalf("Healthcheck failed: %v", err)
