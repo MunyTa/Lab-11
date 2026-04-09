@@ -1,0 +1,47 @@
+# IDE и редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Файлы ОС
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Локальные переменные окружения (важно!)
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+*.log
+
+# Go
+go.sum
+*.exe
+*.test
+*.out
+
+# Rust
+target/
+Cargo.lock
+*.rs.bk
+
+# Docker
+*.tar.gz
+*.tar
+
+# Временные файлы
+*.tmp
+*.temp
+*.bak
